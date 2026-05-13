@@ -43,7 +43,9 @@ module RubyEventStoreActiveRecordEventRepositoryUpsertUniqueByEventId
   end
 end
 
-Rails.application.config.to_prepare do
+# Use after_initialize (not to_prepare): in production eager_load boots, to_prepare may not run
+# before the first request, so Heroku web/worker processes would never prepend these patches.
+Rails.application.config.after_initialize do
   if defined?(SolidQueue::Job) && !SolidQueue::Job.instance_variable_defined?(:@_ddd_eds_bulk_insert_unique_by)
     SolidQueue::Job.singleton_class.prepend(SolidQueueJobBulkInsertUniqueBy)
     SolidQueue::Job.instance_variable_set(:@_ddd_eds_bulk_insert_unique_by, true)
