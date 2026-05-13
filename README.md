@@ -1,4 +1,4 @@
-# Expense Split (DDD-EDS)
+# Expense Split
 
 Rails **8.1** expense-sharing app: rooms, equal splits, balance projection, settlements, **tracked invitations**, and **Rails Event Store** for domain events. Business logic lives under `app/domains` (modular monolith / bounded contexts).
 
