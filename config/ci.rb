@@ -3,11 +3,10 @@
 CI.run do
   step "Setup", "bin/setup --skip-server"
 
-  step "Style: Ruby", "bin/rubocop"
-
-  step "Security: Gem audit", "bin/bundler-audit"
-  step "Security: Importmap vulnerability audit", "bin/importmap audit"
-  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
+  step "Style: Ruby", "make lint"
+  step "Security: Gem audit", "make bundler-audit"
+  step "Security: Importmap vulnerability audit", "make importmap-audit"
+  step "Security: Brakeman code analysis", "make brakeman"
 
 
   # Optional: set a green GitHub commit status to unblock PR merge.

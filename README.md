@@ -80,9 +80,9 @@ From the repo root, **`make`** or **`make help`** lists targets. Summary:
 | `make test` | `bundle exec rspec` — needs a reachable test database (same rules as [Tests](#tests)). |
 | `make reset` | `bin/rails db:reset` — if the **`web`** compose service is running, runs inside that container; otherwise uses **local** `bin/rails` (hybrid Postgres-in-Docker + host Ruby). **Drops and recreates the development database.** |
 | `make clean` | `docker compose down --remove-orphans` — like `make stop`, plus removal of **orphan** containers left over from older compose files. |
-| `make lint` | **RuboCop** (`bin/rubocop`) — Omakase style rules. |
+| `make lint` | **RuboCop** — Omakase rules; cache directory **`tmp/rubocop`** (ignored by git via `tmp/`). |
 | `make lint-ci` | RuboCop with **GitHub** formatter (for Actions-style output). |
-| `make brakeman` | **Brakeman** static security analysis for Rails (`bin/brakeman --no-pager`). |
+| `make brakeman` | **Brakeman** — same flags as **`bin/ci`**: `--quiet --no-pager --exit-on-warn --exit-on-error`. |
 | `make bundler-audit` | **bundler-audit** — known vulnerable gems in `Gemfile.lock`. |
 | `make importmap-audit` | **importmap** vulnerability audit for pinned JS. |
 | `make check` | Runs **`lint`**, **`brakeman`**, **`bundler-audit`**, and **`importmap-audit`** in sequence (same static checks as CI, minus the DB-backed **test** job). |

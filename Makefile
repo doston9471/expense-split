@@ -28,13 +28,13 @@ clean: ## docker compose down and remove orphan containers from old compose defi
 	$(COMPOSE) down --remove-orphans
 
 lint: ## RuboCop (Omakase rules; default formatter)
-	bin/rubocop
+	RUBOCOP_CACHE_ROOT=tmp/rubocop bin/rubocop
 
 lint-ci: ## RuboCop with GitHub Actions formatter (used in CI)
-	bin/rubocop -f github
+	RUBOCOP_CACHE_ROOT=tmp/rubocop bin/rubocop -f github
 
-brakeman: ## Brakeman Rails security scan (no pager; same as CI)
-	bin/brakeman --no-pager
+brakeman: ## Brakeman Rails security scan (quiet, no pager; exit on warn/error — same as bin/ci)
+	bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error
 
 bundler-audit: ## Report known vulnerable gems from Gemfile.lock
 	bin/bundler-audit

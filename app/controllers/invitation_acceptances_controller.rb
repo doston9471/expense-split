@@ -5,10 +5,9 @@ class InvitationAcceptancesController < ApplicationController
 
   def show
     @invitation = Invitation.find_by(token: params[:token])
-    unless @invitation&.usable?
-      redirect_to root_path, alert: "This invitation is invalid or has expired."
-      nil
-    end
+    return if @invitation&.usable?
+
+    redirect_to root_path, alert: "This invitation is invalid or has expired."
   end
 
   def create
