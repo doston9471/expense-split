@@ -8,7 +8,7 @@
 #
 # Fix: prepend ActiveRecord::InsertAll once and, on that specific error, supply either
 # the real unique index on `event_id` (event store) or a synthetic PK index on `id`
-# for `solid_queue_*` / `event_store_*` tables that expose an `id` column.
+# for `solid_queue_*` / `event_store_*` / `solid_cable_*` tables that expose an `id` column.
 
 module DddEdsInsertAllUniqueIndexFallback
   def find_unique_index_for(unique_by)
@@ -34,12 +34,14 @@ module DddEdsInsertAllUniqueIndexFallback
     raise e
   end
 
+  # Only tables we own for this workaround. Do not call `columns_hash` here: for adapters like
+  # Solid Cable, the table may not exist yet on Heroku (only `db:migrate` ran, not cable_schema),
+  # and touching the schema cache raises PG::UndefinedTable and masks the original error.
   def synthetic_id_unique_index?(match)
     return false unless match == [ "id" ]
-    return false unless model.columns_hash.key?("id")
 
     t = model.table_name.to_s
-    t.start_with?("solid_queue_") || t.start_with?("event_store_")
+    t.start_with?("solid_queue_") || t.start_with?("event_store_") || t.start_with?("solid_cable_")
   end
 end
 
