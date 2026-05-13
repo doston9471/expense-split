@@ -6,7 +6,8 @@
 # Puma (`WEB_CONCURRENCY` > 0). Heroku's Ruby buildpack often sets `WEB_CONCURRENCY`
 # from dyno RAM; the supervisor then exits and Puma shuts down with
 # "Detected Solid Queue has gone away, stopping Puma".
-if ENV["SOLID_QUEUE_IN_PUMA"].present? && ENV.fetch("WEB_CONCURRENCY", "0").to_i > 0
+# Use only stdlib here: Puma loads this file before Active Support, so `.present?` is not available.
+if !ENV["SOLID_QUEUE_IN_PUMA"].to_s.empty? && ENV.fetch("WEB_CONCURRENCY", "0").to_i > 0
   warn "[puma] SOLID_QUEUE_IN_PUMA requires a single Puma process; forcing WEB_CONCURRENCY=0 (was #{ENV['WEB_CONCURRENCY'].inspect})"
   ENV["WEB_CONCURRENCY"] = "0"
 end
@@ -44,7 +45,7 @@ port ENV.fetch("PORT", 3000)
 plugin :tmp_restart
 
 # Run the Solid Queue supervisor inside of Puma for single-server deployments.
-plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+plugin :solid_queue if !ENV["SOLID_QUEUE_IN_PUMA"].to_s.empty?
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
