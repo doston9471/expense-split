@@ -135,6 +135,62 @@ bundle exec rspec
 
 The default **`Dockerfile`** (from `rails new`) targets Kamal/production (Thruster, `RAILS_ENV=production`). Use **`Dockerfile.dev`** + **`docker-compose.yml`** for local full-stack Docker.
 
+## Deploy to Heroku
+
+This app is a standard **Rails 8 + PostgreSQL** stack. Heroku provides a single **`DATABASE_URL`**; `config/database.yml` uses it for **primary, Solid Cache, Solid Queue, and Solid Cable** (same physical database, separate migration paths).
+
+### Prerequisites
+
+- [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) logged in (`heroku login`).
+- Git remote for the Heroku app (create app first, then `heroku git:remote -a your-app-name`).
+
+### One-time setup
+
+```bash
+heroku create your-app-name
+heroku stack:set heroku-24
+heroku addons:create heroku-postgresql:essential-0
+heroku buildpacks:set heroku/ruby
+```
+
+### Required config vars
+
+| Variable | Purpose |
+|----------|---------|
+| `RAILS_MASTER_KEY` | Contents of `config/master.key` (or set `SECRET_KEY_BASE` instead if you do not use credentials). |
+| `APPLICATION_HOST` | Public hostname for URL helpers and Devise (no scheme), e.g. `your-app-name.herokuapp.com` or your custom domain. |
+| `SOLID_QUEUE_IN_PUMA` | Set to `true` to run Solid Queue inside the web **Puma** process on a single web dyno (recommended to start). |
+
+Optional: `RAILS_LOG_LEVEL`, `JOB_CONCURRENCY` (defaults in `config/queue.yml`).
+
+```bash
+heroku config:set RAILS_MASTER_KEY="$(cat config/master.key)"
+heroku config:set APPLICATION_HOST=your-app-name.herokuapp.com
+heroku config:set SOLID_QUEUE_IN_PUMA=true
+```
+
+Heroku sets **`DATABASE_URL`**, **`HEROKU_APP_NAME`**, **`PORT`**, and **`RAILS_ENV=production`** automatically.
+
+### Deploy
+
+```bash
+git push heroku main
+```
+
+The root **`Procfile`** runs **`rails db:migrate`** on each release and **`puma`** for the web process.
+
+### After first deploy
+
+- Open `https://YOUR_HOST` and hit **`/up`** if you need a quick health check.
+- If you use a **custom domain**, add it in Heroku, set **`APPLICATION_HOST`** to that hostname, and consider enabling **`config.hosts`** for it (already supported when `HEROKU_APP_NAME` is unset via **`APPLICATION_HOST`** in `config/environments/production.rb`).
+
+### Notes
+
+- **SSL**: `config/environments/production.rb` enables `force_ssl` and `assume_ssl` for reverse-proxy TLS (Heroku router).
+- **Action Cable (Turbo Streams)**: Uses **Solid Cable** backed by Postgres (no Redis addon required).
+- **Tailwind**: The Heroku Ruby buildpack runs **`rake assets:precompile`**; `tailwindcss-rails` hooks into that pipeline.
+- **Non-Heroku production** (e.g. Kamal): leave **`DATABASE_URL`** unset and continue using **`DDD_EDS_DATABASE_PASSWORD`** and separate database names as before.
+
 ## License
 
 Private / your choice — add a `LICENSE` file if you open-source the project.
