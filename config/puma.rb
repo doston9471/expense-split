@@ -2,6 +2,15 @@
 # are invoked here are part of Puma's configuration DSL. For more information
 # about methods provided by the DSL, see https://puma.io/puma/Puma/DSL.html.
 #
+# Solid Queue's Puma plugin starts a supervisor that does not survive **clustered**
+# Puma (`WEB_CONCURRENCY` > 0). Heroku's Ruby buildpack often sets `WEB_CONCURRENCY`
+# from dyno RAM; the supervisor then exits and Puma shuts down with
+# "Detected Solid Queue has gone away, stopping Puma".
+if ENV["SOLID_QUEUE_IN_PUMA"].present? && ENV.fetch("WEB_CONCURRENCY", "0").to_i > 0
+  warn "[puma] SOLID_QUEUE_IN_PUMA requires a single Puma process; forcing WEB_CONCURRENCY=0 (was #{ENV['WEB_CONCURRENCY'].inspect})"
+  ENV["WEB_CONCURRENCY"] = "0"
+end
+#
 # Puma starts a configurable number of processes (workers) and each process
 # serves each request in a thread from an internal thread pool.
 #
