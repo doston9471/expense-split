@@ -158,7 +158,7 @@ heroku buildpacks:set heroku/ruby
 | Variable | Purpose |
 |----------|---------|
 | `RAILS_MASTER_KEY` | Contents of `config/master.key` (or set `SECRET_KEY_BASE` instead if you do not use credentials). |
-| `APPLICATION_HOST` | Public hostname for URL helpers and Devise (no scheme), e.g. `your-app-name.herokuapp.com` or your custom domain. |
+| `APPLICATION_HOST` | Public hostname for URL helpers and Devise (no scheme), e.g. `your-app-name.herokuapp.com`. On Heroku you can **omit** this if **`HEROKU_APP_NAME`** is set (the app derives `https://YOUR_APP.herokuapp.com`). Always set it for **custom domains**. |
 | *(none for queue)* | **Recommended:** do **not** set `SOLID_QUEUE_IN_PUMA`. Use the **`worker`** process in the `Procfile` and scale it (see below). |
 | `SOLID_QUEUE_IN_PUMA` | Optional `true` only if you insist on **one dyno**: runs Solid Queue inside Puma. Heroku often sets **`WEB_CONCURRENCY` > 0**; `config/puma.rb` then **forces `WEB_CONCURRENCY=0`** so the supervisor is not killed by clustered workers (avoids *"Solid Queue has gone away, stopping Puma"*). |
 
@@ -166,7 +166,8 @@ Optional: `RAILS_LOG_LEVEL`, `JOB_CONCURRENCY` (defaults in `config/queue.yml`).
 
 ```bash
 heroku config:set RAILS_MASTER_KEY="$(cat config/master.key)"
-heroku config:set APPLICATION_HOST=your-app-name.herokuapp.com
+# Optional on Heroku if HEROKU_APP_NAME is set (URL helpers still work):
+# heroku config:set APPLICATION_HOST=your-app-name.herokuapp.com
 heroku ps:scale web=1 worker=1
 ```
 
@@ -202,6 +203,12 @@ Heroku’s Ruby buildpack often sets **`WEB_CONCURRENCY`** to a value **greater 
 
 1. **Recommended:** `heroku config:unset SOLID_QUEUE_IN_PUMA` and run a **`worker`** dyno (`heroku ps:scale worker=1`). The repo **`Procfile`** already defines `worker: bundle exec rails solid_queue:start`.
 2. **Single dyno:** keep `SOLID_QUEUE_IN_PUMA=true`. Current **`config/puma.rb`** forces **`WEB_CONCURRENCY=0`** when both are set, so the supervisor stays in a single Puma process.
+
+### Sign-up or forms return **403** / session issues
+
+- **Blocked host:** Production enables host authorization. On Heroku we allow **any** `*.herokuapp.com` when **`DYNO`** is set, and your **`APPLICATION_HOST`** when set. Deploy the latest `config/environments/production.rb` if you still see `Blocked hosts` in logs.
+- **URL defaults:** If you never set `APPLICATION_HOST`, `config/initializers/url_options.rb` now falls back to **`HEROKU_APP_NAME.herokuapp.com`** on Heroku so Devise and `*_url` helpers use HTTPS.
+- **App crashed (H10):** Fix Solid Queue + Puma first (see section above); a crashed web dyno breaks every route including sign up.
 
 ## License
 

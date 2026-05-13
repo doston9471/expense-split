@@ -85,10 +85,10 @@ Rails.application.configure do
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
   # ]
   #
-  # Heroku default hostname; APPLICATION_HOST covers custom domains (see url_options initializer).
-  if ENV["HEROKU_APP_NAME"].present?
-    config.hosts << "#{ENV['HEROKU_APP_NAME']}.herokuapp.com"
-  end
+  # Host authorization: leading-dot host allows any subdomain (see ActionDispatch::HostAuthorization).
+  # On Heroku, `DYNO` is set; allow any `*.herokuapp.com` so router / pipeline / forwarded headers
+  # cannot 403 legitimate traffic (e.g. user sign-up POST).
+  config.hosts << ".herokuapp.com" if ENV["DYNO"].present?
   if (h = ENV["APPLICATION_HOST"].presence)
     config.hosts << h.sub(%r{\Ahttps?://}i, "").split("/").first
   end
