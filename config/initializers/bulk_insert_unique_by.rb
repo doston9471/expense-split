@@ -43,9 +43,16 @@ module DddEdsInsertAllUniqueIndexFallback
   end
 end
 
+# InsertAll is not eager-autoloaded with ActiveRecord::Base; referencing it in after_initialize
+# before anything calls insert_all raises NameError during e.g. `rake assets:precompile` on Heroku.
 Rails.application.config.after_initialize do
-  next if ActiveRecord::InsertAll.instance_variable_defined?(:@_ddd_eds_insert_all_fallback)
+  next unless defined?(ActiveRecord)
 
-  ActiveRecord::InsertAll.prepend(DddEdsInsertAllUniqueIndexFallback)
-  ActiveRecord::InsertAll.instance_variable_set(:@_ddd_eds_insert_all_fallback, true)
+  require "active_record/insert_all"
+
+  insert_all = ActiveRecord::InsertAll
+  next if insert_all.instance_variable_defined?(:@_ddd_eds_insert_all_fallback)
+
+  insert_all.prepend(DddEdsInsertAllUniqueIndexFallback)
+  insert_all.instance_variable_set(:@_ddd_eds_insert_all_fallback, true)
 end
