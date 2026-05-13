@@ -1,0 +1,22 @@
+<div class="mx-auto max-w-lg">
+  <div class="ui-card">
+    <h1 class="ui-page-title">You’re invited</h1>
+    <p class="ui-page-desc">
+      Room: <span class="font-semibold text-zinc-900"><%= @invitation.room.name %></span>
+    </p>
+    <% if @invitation.email.present? %>
+      <div class="ui-callout mt-4">
+        This invite is tied to <strong><%= @invitation.email %></strong>. Sign in with that account to accept.
+      </div>
+    <% end %>
+
+    <% unless user_signed_in? %>
+      <div class="mt-8 space-y-3">
+        <%= link_to "Sign in to accept", new_user_session_path, class: "ui-btn-primary ui-btn-primary--block" %>
+        <%= link_to "Create account", new_user_registration_path, class: "ui-btn-secondary ui-btn-secondary--block" %>
+      </div>
+    <% else %>
+      <%= button_to "Accept and join room", accept_invitation_path(@invitation.token), method: :post, class: "ui-btn-primary ui-btn-primary--block mt-8" %>
+    <% end %>
+  </div>
+</div>

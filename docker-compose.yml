@@ -1,0 +1,56 @@
+# Full stack: PostgreSQL + Rails (development).
+#
+#   docker compose up --build
+#   open http://localhost:3000
+#
+# Postgres listens on 5432 inside the container. On the host we default to 15432 so
+# local `bin/rails` does not hit another PostgreSQL that may already own 5432 (e.g. Homebrew).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ddd_eds_postgres
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ddd_eds}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ddd_eds}
+      POSTGRES_DB: ${POSTGRES_DB:-ddd_eds_development}
+    volumes:
+      - ddd_eds_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ddd_eds_web
+    entrypoint: ["/rails/bin/docker-entrypoint-web"]
+    command: ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      RAILS_ENV: development
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: ${POSTGRES_USER:-ddd_eds}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-ddd_eds}
+      APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
+      APPLICATION_PORT: ${APPLICATION_PORT:-3000}
+      # Solid Queue / cache use same DB in dev by default
+      RAILS_MAX_THREADS: "5"
+    volumes:
+      - .:/rails
+      - ddd_eds_bundle:/usr/local/bundle
+    depends_on:
+      postgres:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+volumes:
+  ddd_eds_pgdata:
+  ddd_eds_bundle:

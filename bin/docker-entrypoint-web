@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /rails
+
+export PGPASSWORD="${DATABASE_PASSWORD:-ddd_eds}"
+host="${DATABASE_HOST:-postgres}"
+port="${DATABASE_PORT:-5432}"
+user="${DATABASE_USER:-ddd_eds}"
+
+until pg_isready -h "$host" -p "$port" -U "$user" >/dev/null 2>&1; do
+  echo "Waiting for PostgreSQL at ${host}:${port}..."
+  sleep 2
+done
+
+if [ -f Gemfile ]; then
+  bundle check || bundle install
+fi
+
+./bin/rails db:prepare
+
+exec "$@"

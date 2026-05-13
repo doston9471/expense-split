@@ -1,0 +1,153 @@
+<%= turbo_stream_from @room, :live %>
+<%= turbo_frame_tag "room" do %>
+  <div class="flex flex-col gap-8 lg:flex-row">
+    <div class="min-w-0 flex-1 space-y-8">
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div class="min-w-0">
+          <p class="ui-kicker">Room</p>
+          <h1 class="ui-page-title--lg mt-1"><%= @room.name %></h1>
+          <p class="mt-3 text-sm text-zinc-600">
+            <span class="font-medium text-zinc-700">Invite link</span> (any member)
+          </p>
+          <p class="ui-mono-field mt-2"><%= join_room_url(@room.invite_token) %></p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <%= link_to "Add expense", new_room_expense_path(@room), class: "ui-btn-primary", data: { turbo_frame: "_top" } %>
+          <%= link_to "Record settlement", new_room_settlement_path(@room), class: "ui-btn-secondary", data: { turbo_frame: "_top" } %>
+          <% if @room.owner_id == current_user.id %>
+            <%= button_to "Archive room", archive_room_path(@room), method: :post,
+                  form: { data: { turbo_confirm: "Archive this room?", turbo_frame: "_top" } },
+                  class: "ui-btn-warning" %>
+          <% else %>
+            <%= button_to "Leave room", leave_room_path(@room), method: :delete,
+                  form: { data: { turbo_confirm: "Leave this room?", turbo_frame: "_top" } },
+                  class: "ui-btn-secondary" %>
+          <% end %>
+        </div>
+      </div>
+
+      <section class="ui-card">
+        <h2 class="ui-section-title">Members</h2>
+        <ul class="mt-4 flex flex-wrap gap-2">
+          <% @room.memberships.includes(:user).each do |m| %>
+            <li>
+              <span class="ui-badge <%= "ui-badge--owner" if m.role == "owner" %>">
+                <%= m.user.display_name %>
+                <% if m.role == "owner" %>
+                  <span class="text-emerald-700">· owner</span>
+                <% end %>
+              </span>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+
+      <section class="ui-card">
+        <h2 class="ui-section-title">Tracked invitations</h2>
+        <p class="mt-1 text-xs text-zinc-500">
+          Optional email locks acceptance to that address. Links expire after 14 days and can be revoked.
+        </p>
+
+        <%= form_with url: room_invitations_path(@room), method: :post, scope: :invitation, class: "mt-4 flex flex-col gap-3 sm:flex-row sm:items-end" do |f| %>
+          <div class="min-w-0 flex-1">
+            <%= f.label :email, "Invite by email (optional)", class: "ui-label--compact" %>
+            <%= f.email_field :email, placeholder: "friend@example.com", class: "ui-input" %>
+          </div>
+          <%= f.submit "Create invite link", class: "ui-btn-inverse shrink-0" %>
+        <% end %>
+
+        <ul class="mt-6 space-y-3 text-sm">
+          <% @invitations.each do |inv| %>
+            <li class="ui-inset">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
+                  <p class="font-semibold text-zinc-900">
+                    <%= inv.email.present? ? "Email: #{inv.email}" : "Open invite link" %>
+                  </p>
+                  <p class="ui-mono-field mt-2"><%= invitation_url(inv.token) %></p>
+                  <p class="mt-2 text-xs text-zinc-500">
+                    Expires <%= inv.expires_at.strftime("%Y-%m-%d %H:%M") %> · invited by <%= inv.invited_by&.display_name || "—" %>
+                  </p>
+                </div>
+                <% if inv.pending? && policy(inv).destroy? %>
+                  <%= button_to "Revoke", room_invitation_path(@room, inv), method: :delete,
+                        form: { data: { turbo_confirm: "Revoke this invitation?" } },
+                        class: "ui-btn-danger" %>
+                <% end %>
+              </div>
+            </li>
+          <% end %>
+          <% if @invitations.empty? %>
+            <li class="text-sm text-zinc-500">No open invitations.</li>
+          <% end %>
+        </ul>
+      </section>
+
+      <section class="ui-card">
+        <h2 class="ui-section-title">Expenses</h2>
+        <div class="mt-4 space-y-3">
+          <% @expenses.each do |expense| %>
+            <div class="ui-inset--row">
+              <div class="min-w-0">
+                <p class="font-semibold text-zinc-900"><%= expense.title %></p>
+                <p class="mt-0.5 text-xs text-zinc-600">
+                  Paid by <%= expense.paid_by.display_name %> ·
+                  <%= expense.participants.map(&:display_name).join(", ") %>
+                </p>
+              </div>
+              <div class="flex shrink-0 items-center gap-3">
+                <span class="ui-stat"><%= format_money(expense.amount_cents, expense.currency) %></span>
+                <% if expense.created_by_id == current_user.id %>
+                  <%= link_to "Edit", edit_room_expense_path(@room, expense), class: "ui-link text-xs", data: { turbo_frame: "_top" } %>
+                  <%= button_to "Delete", room_expense_path(@room, expense), method: :delete,
+                        form: { data: { turbo_confirm: "Delete this expense?" } },
+                        class: "ui-btn-danger--link" %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+          <% if @expenses.empty? %>
+            <p class="text-sm text-zinc-500">No expenses yet.</p>
+          <% end %>
+        </div>
+      </section>
+    </div>
+
+    <aside class="w-full space-y-6 lg:w-80 lg:shrink-0">
+      <section class="ui-card">
+        <h2 class="ui-section-title">Balances</h2>
+        <p class="mt-1 text-xs text-zinc-500">
+          Suggested transfers after equal splits and settlements (fewest payments; each person's net is unchanged).
+        </p>
+        <ul class="mt-4 space-y-2">
+          <% @balances.each do |b| %>
+            <li class="ui-balance-row">
+              <span class="font-medium"><%= b.debtor.display_name %></span>
+              <span class="text-zinc-500"> owes </span>
+              <span class="font-medium"><%= b.creditor.display_name %></span>
+              <span class="mt-1 block text-xs tabular-nums text-zinc-600"><%= format_money(b.amount_cents, b.currency) %></span>
+            </li>
+          <% end %>
+          <% if @balances.empty? %>
+            <li class="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 px-3 py-4 text-center text-sm text-zinc-500">All settled up.</li>
+          <% end %>
+        </ul>
+      </section>
+
+      <section class="ui-card">
+        <h2 class="ui-section-title">Recent settlements</h2>
+        <ul class="mt-4 space-y-2 text-xs text-zinc-700">
+          <% @settlements.each do |s| %>
+            <li class="rounded-lg border border-zinc-100 bg-zinc-50/60 px-3 py-2">
+              <%= s.payer.display_name %> → <%= s.payee.display_name %>:
+              <span class="font-semibold tabular-nums text-zinc-900"><%= format_money(s.amount_cents, s.currency) %></span>
+            </li>
+          <% end %>
+          <% if @settlements.empty? %>
+            <li class="text-sm text-zinc-500">No settlements yet.</li>
+          <% end %>
+        </ul>
+      </section>
+    </aside>
+  </div>
+<% end %>

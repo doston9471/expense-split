@@ -1,0 +1,38 @@
+<div class="mx-auto max-w-lg">
+  <h1 class="ui-page-title">Add expense</h1>
+  <p class="ui-page-desc">Equal split across selected participants.</p>
+
+  <%= form_with model: @expense, url: room_expenses_path(@room), class: "ui-card mt-8 space-y-5" do |f| %>
+    <div>
+      <%= f.label :title, class: "ui-label" %>
+      <%= f.text_field :title, required: true, class: "ui-input" %>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <%= f.label :amount, "Amount", class: "ui-label" %>
+        <%= f.text_field :amount, required: true, placeholder: "100.00", class: "ui-input" %>
+      </div>
+      <div>
+        <%= f.label :currency, class: "ui-label" %>
+        <%= f.text_field :currency, value: @expense.currency, class: "ui-input" %>
+      </div>
+    </div>
+    <div>
+      <%= f.label :paid_by_id, "Paid by", class: "ui-label" %>
+      <%= f.collection_select :paid_by_id, @room.members.order(:display_name), :id, :display_name, {}, class: "ui-select" %>
+    </div>
+    <fieldset>
+      <legend class="ui-label">Participants</legend>
+      <div class="mt-2 space-y-2">
+        <% @room.members.order(:display_name).each do |member| %>
+          <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-transparent px-1 py-0.5 text-sm text-zinc-800 hover:border-zinc-100 hover:bg-zinc-50/80">
+            <%= check_box_tag "expense[participant_ids][]", member.id, member.id == current_user.id, class: "ui-checkbox" %>
+            <%= member.display_name %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+    <%= f.submit "Save expense", class: "ui-btn-primary ui-btn-primary--block" %>
+    <%= link_to "Cancel", room_path(@room), class: "ui-link-muted mt-3 block" %>
+  <% end %>
+</div>

@@ -1,0 +1,14 @@
+<div class="mx-auto max-w-lg">
+  <h1 class="ui-page-title">New room</h1>
+  <p class="ui-page-desc">You will be the owner and can invite others with a link.</p>
+
+  <%= form_with model: @room, url: rooms_path, class: "ui-card mt-8 space-y-5" do |f| %>
+    <div>
+      <%= f.label :name, "Room name", class: "ui-label" %>
+      <%= f.text_field :name, required: true, placeholder: "Paris Trip", class: "ui-input" %>
+    </div>
+    <div>
+      <%= f.submit "Create room", class: "ui-btn-primary ui-btn-primary--block" %>
+    </div>
+  <% end %>
+</div>

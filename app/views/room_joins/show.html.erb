@@ -1,0 +1,15 @@
+<div class="mx-auto max-w-lg">
+  <div class="ui-card">
+    <h1 class="ui-page-title">Join room</h1>
+    <p class="ui-page-desc">You need an account to join this shared room.</p>
+
+    <% unless user_signed_in? %>
+      <div class="mt-8 space-y-3">
+        <%= link_to "Sign in", new_user_session_path, class: "ui-btn-primary ui-btn-primary--block" %>
+        <%= link_to "Create account", new_user_registration_path, class: "ui-btn-secondary ui-btn-secondary--block" %>
+      </div>
+    <% else %>
+      <%= button_to "Join this room", join_room_confirm_path(@token), method: :post, class: "ui-btn-primary ui-btn-primary--block mt-8" %>
+    <% end %>
+  </div>
+</div>

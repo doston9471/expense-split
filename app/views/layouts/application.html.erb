@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Expense Split" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Expense Split">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= action_cable_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="relative min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased">
+    <div class="ui-ambient" aria-hidden="true">
+      <div class="ui-ambient__glow"></div>
+      <div class="ui-ambient__grain"></div>
+    </div>
+
+    <div class="relative z-10 flex min-h-screen flex-col">
+      <header class="ui-header">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <%= link_to root_path, class: "ui-logo group" do %>
+            <span class="ui-logo__mark" aria-hidden="true">ES</span>
+            <span>
+              <span class="ui-logo__text">Expense</span><span class="ui-logo__accent">Split</span>
+            </span>
+          <% end %>
+          <nav class="flex items-center gap-1 sm:gap-2">
+            <% if user_signed_in? %>
+              <%= link_to "Rooms", rooms_path, class: "ui-nav-link" %>
+              <span class="ui-nav-user"><%= current_user.display_name %></span>
+              <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "ui-btn-ghost" %>
+            <% else %>
+              <%= link_to "Sign in", new_user_session_path, class: "ui-nav-link" %>
+              <%= link_to "Sign up", new_user_registration_path, class: "ui-btn-primary px-3 py-2" %>
+            <% end %>
+          </nav>
+        </div>
+      </header>
+
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+        <% if notice %>
+          <div class="ui-flash ui-flash--notice" role="status">
+            <%= notice %>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div class="ui-flash ui-flash--alert" role="alert">
+            <%= alert %>
+          </div>
+        <% end %>
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>
