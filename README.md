@@ -1,6 +1,6 @@
 # Expense Split
 
-Rails **8.1** expense-sharing app: rooms, equal splits, balance projection, settlements, **tracked invitations**, and **Rails Event Store** for domain events. Business logic lives under `app/domains` (modular monolith / bounded contexts).
+Rails **8.1** expense-sharing app: rooms, equal splits, balance projection, settlements, **tracked invitations**, and **Rails Event Store** for domain events. Business logic lives under `app/domains` [...]
 
 ## Stack
 
@@ -31,7 +31,7 @@ Rails **8.1** expense-sharing app: rooms, equal splits, balance projection, sett
    bin/dev                 # or: bin/rails server
    ```
 
-   Local Rails uses host port **15432** by default (`config/database.yml` development/test + `docker-compose.yml`), so it does not collide with another PostgreSQL on **5432**. To use only a local Postgres on 5432 instead of Docker, set **`DATABASE_PORT=5432`** (and matching host) in **`.env`**. Optional sanity check:
+   Local Rails uses host port **15432** by default (`config/database.yml` development/test + `docker-compose.yml`), so it does not collide with another PostgreSQL on **5432**. To use only a local Post[...]
 
    ```bash
    docker compose exec postgres psql -U ddd_eds -d postgres -c "select current_user"
@@ -78,7 +78,7 @@ From the repo root, **`make`** or **`make help`** lists targets. Summary:
 | `make start` | `docker compose up -d --build postgres web` — full stack in the background. |
 | `make stop` | `docker compose down` — stop and remove containers for this project; **Postgres data volume is kept**. |
 | `make test` | `bundle exec rspec` — needs a reachable test database (same rules as [Tests](#tests)). |
-| `make reset` | `bin/rails db:reset` — if the **`web`** compose service is running, runs inside that container; otherwise uses **local** `bin/rails` (hybrid Postgres-in-Docker + host Ruby). **Drops and recreates the development database.** |
+| `make reset` | `bin/rails db:reset` — if the **`web`** compose service is running, runs inside that container; otherwise uses **local** `bin/rails` (hybrid Postgres-in-Docker + host Ruby). **Drops[...]
 | `make clean` | `docker compose down --remove-orphans` — like `make stop`, plus removal of **orphan** containers left over from older compose files. |
 | `make lint` | **RuboCop** — Omakase rules; cache directory **`tmp/rubocop`** (ignored by git via `tmp/`). |
 | `make lint-ci` | RuboCop with **GitHub** formatter (for Actions-style output). |
@@ -110,11 +110,11 @@ Domain events are stored in Rails Event Store (PostgreSQL) and published to per-
 ## Invitations vs room link
 
 - **Room link** (`/join/:token`): uses `Room#invite_token`. Any signed-in user can join while the room is active.
-- **Tracked invitation** (`/invitations/:token`): stored row with **expiry** (14 days), **revoke**, optional **email** (accept only if the signed-in user’s email matches). Emits `InvitationCreated`, `InvitationAccepted`, `InvitationRevoked` plus `MemberJoined` on successful accept.
+- **Tracked invitation** (`/invitations/:token`): stored row with **expiry** (14 days), **revoke**, optional **email** (accept only if the signed-in user's email matches). Emits `InvitationCreated`,[...]
 
 ## Tests
 
-Requires PostgreSQL and role/database matching `config/database.yml`. With Docker: `docker compose up -d postgres`, then `bin/rails db:test:prepare` (development and test default to host port **15432** unless you set **`DATABASE_PORT`**).
+Requires PostgreSQL and role/database matching `config/database.yml`. With Docker: `docker compose up -d postgres`, then `bin/rails db:test:prepare` (development and test default to host port **15432*[...]
 
 Layout:
 
@@ -137,7 +137,7 @@ The default **`Dockerfile`** (from `rails new`) targets Kamal/production (Thrust
 
 ## Deploy to Heroku
 
-This app is a standard **Rails 8 + PostgreSQL** stack. Heroku provides a single **`DATABASE_URL`**; `config/database.yml` uses it for **primary, Solid Cache, Solid Queue, and Solid Cable** (same physical database, separate migration paths).
+This app is a standard **Rails 8 + PostgreSQL** stack. Heroku provides a single **`DATABASE_URL`**; `config/database.yml` uses it for **primary, Solid Cache, Solid Queue, and Solid Cable** (same physi[...]
 
 ### Prerequisites
 
@@ -158,9 +158,9 @@ heroku buildpacks:set heroku/ruby
 | Variable | Purpose |
 |----------|---------|
 | `RAILS_MASTER_KEY` | Contents of `config/master.key` (or set `SECRET_KEY_BASE` instead if you do not use credentials). |
-| `APPLICATION_HOST` | Public hostname for URL helpers and Devise (no scheme), e.g. `your-app-name.herokuapp.com`. On Heroku you can **omit** this if **`HEROKU_APP_NAME`** is set (the app derives `https://YOUR_APP.herokuapp.com`). Always set it for **custom domains**. |
+| `APPLICATION_HOST` | Public hostname for URL helpers and Devise (no scheme), e.g. `your-app-name.herokuapp.com`. On Heroku you can **omit** this if **`HEROKU_APP_NAME`** is set (the app derives `htt[...]
 | *(none for queue)* | **Recommended:** do **not** set `SOLID_QUEUE_IN_PUMA`. Use the **`worker`** process in the `Procfile` and scale it (see below). |
-| `SOLID_QUEUE_IN_PUMA` | Optional `true` only if you insist on **one dyno**: runs Solid Queue inside Puma. Heroku often sets **`WEB_CONCURRENCY` > 0**; `config/puma.rb` then **forces `WEB_CONCURRENCY=0`** so the supervisor is not killed by clustered workers (avoids *"Solid Queue has gone away, stopping Puma"*). |
+| `SOLID_QUEUE_IN_PUMA` | Optional `true` only if you insist on **one dyno**: runs Solid Queue inside Puma. Heroku often sets **`WEB_CONCURRENCY` > 0**; `config/puma.rb` then **forces `WEB_CONCURRENCY[...]
 
 Optional: `RAILS_LOG_LEVEL`, `JOB_CONCURRENCY` (defaults in `config/queue.yml`).
 
@@ -181,12 +181,12 @@ Heroku sets **`DATABASE_URL`**, **`HEROKU_APP_NAME`**, **`PORT`**, and **`RAILS_
 git push heroku main
 ```
 
-The root **`Procfile`** runs **`rails db:migrate`** on release, **`puma`** for `web`, and **`rails solid_queue:start`** for `worker`. Scale the worker (`heroku ps:scale worker=1`) or jobs will stay queued.
+The root **`Procfile`** runs **`rails db:migrate`** on release, **`puma`** for `web`, and **`rails solid_queue:start`** for `worker`. Scale the worker (`heroku ps:scale worker=1`) or jobs will stay qu[...]
 
 ### After first deploy
 
 - Open `https://YOUR_HOST` and hit **`/up`** if you need a quick health check.
-- If you use a **custom domain**, add it in Heroku, set **`APPLICATION_HOST`** to that hostname, and consider enabling **`config.hosts`** for it (already supported when `HEROKU_APP_NAME` is unset via **`APPLICATION_HOST`** in `config/environments/production.rb`).
+- If you use a **custom domain**, add it in Heroku, set **`APPLICATION_HOST`** to that hostname, and consider enabling **`config.hosts`** for it (already supported when `HEROKU_APP_NAME` is unset via [...]
 
 ### Notes
 
@@ -197,19 +197,19 @@ The root **`Procfile`** runs **`rails db:migrate`** on release, **`puma`** for `
 
 ### Web dyno crashes: *"Detected Solid Queue has gone away, stopping Puma"*
 
-Heroku’s Ruby buildpack often sets **`WEB_CONCURRENCY`** to a value **greater than 0** so Puma runs in **cluster** mode. Solid Queue’s **in-Puma** supervisor does not survive that; it exits and Puma shuts down (**H10**).
+Heroku's Ruby buildpack often sets **`WEB_CONCURRENCY`** to a value **greater than 0** so Puma runs in **cluster** mode. Solid Queue's **in-Puma** supervisor does not survive that; it exits and Pu[...]
 
 **Fix (pick one):**
 
-1. **Recommended:** `heroku config:unset SOLID_QUEUE_IN_PUMA` and run a **`worker`** dyno (`heroku ps:scale worker=1`). The repo **`Procfile`** already defines `worker: bundle exec rails solid_queue:start`.
+1. **Recommended:** `heroku config:unset SOLID_QUEUE_IN_PUMA` and run a **`worker`** dyno (`heroku ps:scale worker=1`). The repo **`Procfile`** already defines `worker: bundle exec rails solid_queue:s[...]
 2. **Single dyno:** keep `SOLID_QUEUE_IN_PUMA=true`. Current **`config/puma.rb`** forces **`WEB_CONCURRENCY=0`** when both are set, so the supervisor stays in a single Puma process.
 
 ### Sign-up or forms return **403** / session issues
 
-- **Blocked host:** Production enables host authorization. On Heroku we allow **any** `*.herokuapp.com` when **`DYNO`** is set, and your **`APPLICATION_HOST`** when set. Deploy the latest `config/environments/production.rb` if you still see `Blocked hosts` in logs.
+- **Blocked host:** Production enables host authorization. On Heroku we allow **any** `*.herokuapp.com` when **`DYNO`** is set, and your **`APPLICATION_HOST`** when set. Deploy the latest `config/envi[...]
 - **URL defaults:** If you never set `APPLICATION_HOST`, `config/initializers/url_options.rb` now falls back to **`HEROKU_APP_NAME.herokuapp.com`** on Heroku so Devise and `*_url` helpers use HTTPS.
 - **App crashed (H10):** Fix Solid Queue + Puma first (see section above); a crashed web dyno breaks every route including sign up.
 
 ## License
 
-Private / your choice — add a `LICENSE` file if you open-source the project.
+This project is licensed under the [MIT License](LICENSE) — see the [LICENSE](LICENSE) file for details.
