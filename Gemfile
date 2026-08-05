@@ -74,3 +74,5 @@ group :test do
   gem "selenium-webdriver"
   gem "shoulda-matchers"
 end
+
+gem "ruby-vips", "~> 2.0", require: false
