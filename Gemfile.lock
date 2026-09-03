@@ -372,9 +372,9 @@ GEM
     ruby_event_store-browser (3.1.0)
       rack
       ruby_event_store (= 3.1.0)
-    rubyzip (3.5.0)
+    rubyzip (3.6.0)
     securerandom (0.4.1)
-    selenium-webdriver (4.47.0)
+    selenium-webdriver (4.48.0)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
@@ -634,9 +634,9 @@ CHECKSUMS
   ruby_event_store (3.1.0) sha256=8a41f43ecdb36ca7087eee8df4090e35b27c26bc8acb98ad99ce489e48686dbf
   ruby_event_store-active_record (3.1.0) sha256=34a95f76cbc5bb6f020ee3145d6e832827f3c195880eca186e1b29c44bf1b9f2
   ruby_event_store-browser (3.1.0) sha256=7c2d9b5e28181f0055bfa0189330f0be33ebd60bb3ea9fcfa87106d86915a586
-  rubyzip (3.5.0) sha256=f77c49d737a849b662f6ca4de473f31b4ecd8288f1c9f901a5c820641f0f8d7c
+  rubyzip (3.6.0) sha256=268994d44d62282d1cfd99bf10eae48d7267199158ad7ea3e1fee2da9458b695
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
-  selenium-webdriver (4.47.0) sha256=67f915b8223d2133bbaa13e92fd98854175394f086e2036a9eff4f5561fd69e4
+  selenium-webdriver (4.48.0) sha256=0c8376ebc8a0a4879343fe6fe6eccdcea76748611cd25de370b33eded2077a94
   shoulda-matchers (8.0.1) sha256=5dbb46e5765b9da225111b085e0819e8c8a121ff94bba430a153eb1ea2c60288
   solid_cable (4.0.2) sha256=084636a67679ad00d23088b33c84047e614bcf41ee559db24b414d83cdc42d03
   solid_cache (1.0.10) sha256=bc05a2fb3ac78a6f43cbb5946679cf9db67dd30d22939ededc385cb93e120d41
